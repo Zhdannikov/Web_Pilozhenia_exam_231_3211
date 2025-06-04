@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+<h2>{{ book.title }}</h2>
+<p><strong>Автор:</strong> {{ book.author }}</p>
+<p><strong>Год:</strong> {{ book.year }}</p>
+<p><strong>Издательство:</strong> {{ book.publisher }}</p>
+<p><strong>Страниц:</strong> {{ book.pages }}</p>
+<p><strong>Жанры:</strong> {{ book.genres | map(attribute='name') | join(', ') }}</p>
+<div><strong>Описание:</strong> {{ book.description | safe }}</div>
+
+{% if current_user.is_authenticated and (current_user.role.name == 'Администратор' or current_user.role.name == 'Модератор') %}
+  <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-warning">Редактировать</a>
+{% endif %}
+
+{% if current_user.is_authenticated and current_user.role.name == 'Администратор' %}
+  <form method="POST" action="{{ url_for('delete_book', book_id=book.id) }}" class="mt-2">
+    <button type="submit" class="btn btn-danger" onclick="return confirm('Удалить эту книгу?')">Удалить</button>
+  </form>
+{% endif %}
+
+{% if current_user.is_authenticated and current_user.role.name == 'Пользователь' %}
+<!-- Кнопка для добавления книги в подборку -->
+<button class="btn btn-success my-3" data-bs-toggle="modal" data-bs-target="#addToCollectionModal">Добавить в подборку</button>
+
+<!-- Модальное окно добавления в подборку -->
+<div class="modal fade" id="addToCollectionModal" tabindex="-1" aria-labelledby="addToCollectionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      {% if current_user.collections %}
+      <form method="POST" action="{{ url_for('add_to_collection', book_id=book.id) }}">
+        {{ collection_form.hidden_tag() }}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addToCollectionModalLabel">Добавить в подборку</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="collectionSelect" class="form-label">Выберите подборку</label>
+            <select class="form-select" name="collection_id" id="collectionSelect" required>
+              {% for collection in current_user.collections %}
+              <option value="{{ collection.id }}">{{ collection.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-primary">Добавить</button>
+        </div>
+      </form>
+      {% else %}
+      <div class="p-3 text-center text-muted">
+        У вас нет подборок. Сначала создайте подборку!
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<hr>
+<h4>Рецензии</h4>
+{% if reviews %}
+  {% for review in reviews %}
+    <div class="border p-2 mb-3">
+      <strong>{{ review.user.username }}</strong> ({{ review.timestamp.strftime('%Y-%m-%d %H:%M') }}) — Оценка: {{ review.rating }}
+      <p>{{ review.text|safe }}</p>
+    </div>
+  {% endfor %}
+{% else %}
+  <p>Пока нет рецензий.</p>
+{% endif %}
+
+{% if current_user.is_authenticated and not user_review %}
+<h3 class="mt-5">Оставить рецензию</h3>
+<form id="review-form" method="POST" action="{{ url_for('add_review', book_id=book.id) }}">
+  {{ review_form.hidden_tag() }}
+
+  <div class="mb-3">
+    {{ review_form.rating.label(class="form-label") }}
+    {{ review_form.rating(class="form-control") }}
+  </div>
+
+  <div class="mb-3">
+    {{ review_form.text.label(class="form-label") }}
+    {{ review_form.text(class="form-control", rows=5, id="markdown-review") }}
+  </div>
+
+  <div class="mb-3">
+    {{ review_form.submit(class="btn btn-primary") }}
+  </div>
+</form>
+{% elif user_review %}
+  <h3 class="mt-5">Ваша рецензия</h3>
+  <div class="border p-2 mb-3">
+    <strong>{{ user_review.user.username }}</strong> ({{ user_review.timestamp.strftime('%Y-%m-%d %H:%M') }}) — Оценка: {{ user_review.rating }}
+    <p>{{ user_review.text|safe }}</p>
+  </div>
+{%endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<script>
+  var easyMDE = new EasyMDE({ element: document.getElementById("markdown-review") });
+
+  document.getElementById('review-form').addEventListener('submit', function() {
+    document.getElementById("markdown-review").value = easyMDE.value();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Подборка: {{ collection.name }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Подборка: "{{ collection.name }}"</h2>
+
+{% if collection.books %}
+  <ul class="list-group">
+    {% for book in collection.books %}
+    <li class="list-group-item">
+      <strong>{{ book.title }}</strong> — {{ book.author }}
+    </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>В подборке пока нет книг.</p>
+{% endif %}
+
+<a href="{{ url_for('collections') }}" class="btn btn-secondary mt-4">Назад к подборкам</a>
+{% endblock %}

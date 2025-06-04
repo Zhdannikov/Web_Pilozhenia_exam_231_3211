@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Мои подборки{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Мои подборки</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Название</th>
+      <th>Количество книг</th>
+      <th>Действия</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for collection in collections %}
+    <tr>
+      <td>{{ collection.name }}</td>
+      <td>{{ collection.books | length }}</td>
+      <td>
+        <a href="{{ url_for('view_collection', collection_id=collection.id) }}" class="btn btn-primary btn-sm">Просмотр</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Кнопка для открытия модального окна -->
+<button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCollectionModal">Добавить подборку</button>
+
+<!-- Модальное окно добавления подборки -->
+<div class="modal fade" id="addCollectionModal" tabindex="-1" aria-labelledby="addCollectionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addCollectionModalLabel">Новая подборка</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control") }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-primary">Добавить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
