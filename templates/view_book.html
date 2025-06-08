@@ -102,14 +102,25 @@
 {%endif %}
 {% endblock %}
 
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
-<script>
-  var easyMDE = new EasyMDE({ element: document.getElementById("markdown-review") });
 
-  document.getElementById('review-form').addEventListener('submit', function() {
-    document.getElementById("markdown-review").value = easyMDE.value();
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("✅ DOM загружен");
+
+    const textarea = document.getElementById("markdown-review");
+    const form = document.getElementById("review-form");
+
+    console.log("📋 textarea:", textarea);
+    console.log("🧾 form:", form);
+
+    if (textarea && form) {
+      form.addEventListener("submit", function () {
+        console.log("🚀 Форма отправляется");
+      });
+    } else {
+      console.warn("❌ textarea или form не найдены");
+    }
   });
 </script>
 {% endblock %}
